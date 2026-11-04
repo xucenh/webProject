@@ -5,13 +5,6 @@ from django.db.models import F, Q
 
 
 class Appointment(models.Model):
-    """A single booking; one doctor + one date + one start_time while active.
-
-    Slots are never stored: they are computed from the doctor's WorkingHours
-    minus TimeOff minus active appointments. The partial unique constraint is
-    what actually prevents double booking (cancelled rows are excluded, so a
-    freed slot can be booked again).
-    """
 
     class Status(models.TextChoices):
         BOOKED = "booked", "Booked"
@@ -62,8 +55,6 @@ class Appointment(models.Model):
 
 
 class Review(models.Model):
-    """Bonus: one rating per completed appointment."""
-
     appointment = models.OneToOneField(
         Appointment, on_delete=models.CASCADE, related_name="review"
     )

@@ -3,12 +3,6 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """Single auth table for both roles; `role` decides what a user can do.
-
-    Login stays on Django's default `username` field so `createsuperuser`,
-    `LoginView` and the admin work without a custom manager. `email` is
-    required and unique because confirmations/reminders send mail.
-    """
 
     class Role(models.TextChoices):
         DOCTOR = "doctor", "Doctor"

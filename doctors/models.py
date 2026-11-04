@@ -5,8 +5,6 @@ from django.db.models import Avg
 
 
 class DoctorProfile(models.Model):
-    """Extra data for users whose `role` is `doctor` (1:1 with the auth user)."""
-
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -30,15 +28,12 @@ class DoctorProfile(models.Model):
 
     @property
     def average_rating(self):
-        """Computed from reviews, never stored, so it cannot go stale."""
         return self.appointments.filter(review__isnull=False).aggregate(
             avg=Avg("review__rating")
         )["avg"]
 
 
 class WorkingHours(models.Model):
-    """Recurring weekly availability; the source for generated slots."""
-
     class Weekday(models.IntegerChoices):
         MONDAY = 0, "Monday"
         TUESDAY = 1, "Tuesday"
@@ -73,8 +68,6 @@ class WorkingHours(models.Model):
 
 
 class TimeOff(models.Model):
-    """One-off exception to the weekly pattern (holiday, sick day)."""
-
     doctor = models.ForeignKey(
         DoctorProfile, on_delete=models.CASCADE, related_name="time_off"
     )

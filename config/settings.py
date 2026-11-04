@@ -1,8 +1,4 @@
-"""Django settings for the clinic project.
-
-Phase One: project wiring, apps, custom user, PostgreSQL and the
-slot length constant. Views/templates land in Phase Two.
-"""
+"""Django settings for the clinic project."""
 
 import os
 from pathlib import Path
@@ -11,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def _load_env(path: Path) -> None:
-    """Minimal .env loader (KEY=VALUE lines) so no extra dependency is needed."""
+    """.env loader"""
     if not path.exists():
         return
     for raw in path.read_text().splitlines():
@@ -126,10 +122,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Phase One design decision: every appointment slot is 30 minutes long.
 SLOT_MINUTES = 30
 
-# Bonus features (confirmation mail) are mocked with the console backend.
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
