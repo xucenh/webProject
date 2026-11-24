@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}خانه{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="hero">
+    <span class="pill">رزرو آنلاین، ۲۴ ساعته</span>
+    <h1>نوبت پزشک را آنلاین رزرو کنید، بدون تماس تلفنی</h1>
+    <p>
+      پزشک را انتخاب کنید، زمان‌های آزاد را ببینید و در چند ثانیه نوبت بگیرید.
+      اگر برنامه‌تان عوض شد، همان‌جا نوبت را لغو کنید.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{% url 'doctors:list' %}">مشاهده پزشکان</a>
+      {% if user.is_authenticated %}
+        {% if user.is_patient %}
+          <a class="btn btn-ghost" href="{% url 'appointments:mine' %}">نوبت‌های من</a>
+        {% else %}
+          <a class="btn btn-ghost" href="{% url 'doctor:appointments' %}">نوبت‌های بیماران</a>
+        {% endif %}
+      {% else %}
+        <a class="btn btn-ghost" href="{% url 'accounts:signup' %}">ساخت حساب بیمار</a>
+      {% endif %}
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <strong>{{ doctor_count|fa }}</strong>
+        <span>پزشک فعال</span>
+      </div>
+      <div class="stat">
+        <strong>{{ booked_count|fa }}</strong>
+        <span>نوبت رزروشده</span>
+      </div>
+      <div class="stat">
+        <strong>۳۰</strong>
+        <span>دقیقه برای هر ویزیت</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>چطور نوبت بگیرم؟</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-number">۱</span>
+        <h3>پزشک را پیدا کنید</h3>
+        <p class="muted">بر اساس نام، تخصص یا نام مطب جستجو کنید.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">۲</span>
+        <h3>زمان آزاد را انتخاب کنید</h3>
+        <p class="muted">فقط زمان‌هایی نمایش داده می‌شود که واقعاً آزادند.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">۳</span>
+        <h3>رزرو را نهایی کنید</h3>
+        <p class="muted">با یک کلیک نوبت ثبت می‌شود و ایمیل تأیید می‌رسد.</p>
+      </div>
+    </div>
+  </section>
+
+  {% if doctors %}
+    <section class="mt-3">
+      <div class="page-head">
+        <div>
+          <h2>پزشکان تازه</h2>
+          <p>برای دیدن همه پزشکان و جستجو، فهرست کامل را ببینید.</p>
+        </div>
+        <a class="btn btn-ghost" href="{% url 'doctors:list' %}">همه پزشکان</a>
+      </div>
+      <div class="grid-3">
+        {% for doctor in doctors %}
+          {% include "doctors/_doctor_card.html" %}
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

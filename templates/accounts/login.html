@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}ورود{% endblock %}
+
+{% block content %}
+<div class="container auth-wrap">
+  <div class="auth-head">
+    <h1>ورود به حساب</h1>
+    <p>برای دیدن نوبت‌ها و رزرو، وارد حساب خود شوید.</p>
+  </div>
+
+  <form class="form-card" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% include "partials/field.html" with field=form.username %}
+    {% include "partials/field.html" with field=form.password %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">ورود</button>
+      <a class="btn btn-ghost" href="{% url 'accounts:signup' %}">ثبت‌نام</a>
+    </div>
+  </form>
+
+  <div class="demo-box">
+    <strong>حساب‌های نمونه:</strong>
+    بیمار <code>sara</code> یا پزشک <code>dr_ahmadi</code> — گذرواژه
+    <code>Demo12345!</code>
+  </div>
+
+  <p class="center mt-2">
+    حساب ندارید؟
+    <a href="{% url 'accounts:signup' %}">ثبت‌نام کنید</a>
+  </p>
+</div>
+{% endblock %}

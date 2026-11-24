@@ -1,7 +1,8 @@
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
+
+from core.jalali import format_jalali, persian_digits
 
 
 class DoctorProfile(models.Model):
@@ -10,21 +11,45 @@ class DoctorProfile(models.Model):
         on_delete=models.CASCADE,
         related_name="doctor_profile",
         limit_choices_to={"role": "doctor"},
+        verbose_name="کاربر",
     )
-    specialty = models.CharField(max_length=100)
-    bio = models.TextField(blank=True)
-    clinic_name = models.CharField(max_length=120, blank=True)
-    clinic_address = models.CharField(max_length=255, blank=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    visit_fee = models.DecimalField(max_digits=8, decimal_places=2, default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
+    specialty = models.CharField(max_length=100, verbose_name="تخصص")
+    bio = models.TextField(blank=True, verbose_name="درباره من")
+    clinic_name = models.CharField(
+        max_length=120, blank=True, verbose_name="نام مطب یا کلینیک"
+    )
+    clinic_address = models.CharField(
+        max_length=255, blank=True, verbose_name="نشانی مطب"
+    )
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        verbose_name="عرض جغرافیایی",
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        verbose_name="طول جغرافیایی",
+    )
+    visit_fee = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=0,
+        verbose_name="هزینه ویزیت (تومان)",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:
         ordering = ["user__first_name", "user__last_name"]
+        verbose_name = "پروفایل پزشک"
+        verbose_name_plural = "پروفایل پزشکان"
 
     def __str__(self) -> str:
-        return f"Dr. {self.user.get_full_name() or self.user.username} — {self.specialty}"
+        return f"دکتر {self.user.get_full_name() or self.user.username} — {self.specialty}"
 
     @property
     def average_rating(self):
@@ -35,23 +60,30 @@ class DoctorProfile(models.Model):
 
 class WorkingHours(models.Model):
     class Weekday(models.IntegerChoices):
-        MONDAY = 0, "Monday"
-        TUESDAY = 1, "Tuesday"
-        WEDNESDAY = 2, "Wednesday"
-        THURSDAY = 3, "Thursday"
-        FRIDAY = 4, "Friday"
-        SATURDAY = 5, "Saturday"
-        SUNDAY = 6, "Sunday"
+        MONDAY = 0, "دوشنبه"
+        TUESDAY = 1, "سه‌شنبه"
+        WEDNESDAY = 2, "چهارشنبه"
+        THURSDAY = 3, "پنج‌شنبه"
+        FRIDAY = 4, "جمعه"
+        SATURDAY = 5, "شنبه"
+        SUNDAY = 6, "یکشنبه"
 
     doctor = models.ForeignKey(
-        DoctorProfile, on_delete=models.CASCADE, related_name="working_hours"
+        DoctorProfile,
+        on_delete=models.CASCADE,
+        related_name="working_hours",
+        verbose_name="پزشک",
     )
-    weekday = models.IntegerField(choices=Weekday.choices)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    weekday = models.IntegerField(
+        choices=Weekday.choices, verbose_name="روز هفته"
+    )
+    start_time = models.TimeField(verbose_name="ساعت شروع")
+    end_time = models.TimeField(verbose_name="ساعت پایان")
 
     class Meta:
         ordering = ["weekday", "start_time"]
+        verbose_name = "شیفت کاری"
+        verbose_name_plural = "شیفت‌های کاری"
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(end_time__gt=models.F("start_time")),
@@ -64,18 +96,27 @@ class WorkingHours(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.get_weekday_display()} {self.start_time:%H:%M}–{self.end_time:%H:%M}"
+        start = persian_digits(self.start_time.strftime("%H:%M"))
+        end = persian_digits(self.end_time.strftime("%H:%M"))
+        return f"{self.get_weekday_display()} {start}–{end}"
 
 
 class TimeOff(models.Model):
     doctor = models.ForeignKey(
-        DoctorProfile, on_delete=models.CASCADE, related_name="time_off"
+        DoctorProfile,
+        on_delete=models.CASCADE,
+        related_name="time_off",
+        verbose_name="پزشک",
     )
-    date = models.DateField()
-    reason = models.CharField(max_length=120, blank=True)
+    date = models.DateField(verbose_name="تاریخ")
+    reason = models.CharField(
+        max_length=120, blank=True, verbose_name="دلیل"
+    )
 
     class Meta:
         ordering = ["date"]
+        verbose_name = "روز مرخصی"
+        verbose_name_plural = "روزهای مرخصی"
         constraints = [
             models.UniqueConstraint(
                 fields=["doctor", "date"], name="unique_day_off_per_doctor"
@@ -83,4 +124,4 @@ class TimeOff(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.doctor} off on {self.date:%Y-%m-%d}"
+        return f"{self.doctor} — مرخصی {format_jalali(self.date, 'short')}"

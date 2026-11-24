@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}دکتر {{ doctor.user.get_full_name|default:doctor.user.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <p class="breadcrumb">
+    <a href="{% url 'doctors:list' %}">پزشکان</a> /
+    دکتر {{ doctor.user.get_full_name|default:doctor.user.username }}
+  </p>
+
+  <section class="card">
+    <div class="doctor-top">
+      <span class="avatar">{{ doctor.user.first_name|first|default:"پ" }}</span>
+      <div>
+        <h1>دکتر {{ doctor.user.get_full_name|default:doctor.user.username }}</h1>
+        <p class="specialty">{{ doctor.specialty }}</p>
+        {% if doctor.clinic_name %}
+          <p class="clinic-name">{{ doctor.clinic_name }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid-2 mt-2">
+      <ul class="detail-list">
+        <li><span>هزینه ویزیت</span><strong>{{ doctor.visit_fee|money_fa }} تومان</strong></li>
+        <li><span>نشانی مطب</span><span>{{ doctor.clinic_address|default:"ثبت نشده" }}</span></li>
+        <li>
+          <span>امتیاز بیماران</span>
+          <span>
+            {% if doctor.average_rating %}
+              <span class="rating">★ {{ doctor.average_rating|floatformat:1|fa }}</span> از ۵
+            {% else %}
+              <span class="muted">بدون امتیاز</span>
+            {% endif %}
+          </span>
+        </li>
+      </ul>
+      <div>
+        {% if doctor.bio %}<p>{{ doctor.bio }}</p>{% endif %}
+        {% if map_url %}
+          <a class="map-link" href="{{ map_url }}" target="_blank" rel="noopener">
+            مشاهده موقعیت مطب روی نقشه
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <div class="split mt-3">
+    <section class="card">
+      <div class="page-head">
+        <div>
+          <h2>زمان‌های آزاد</h2>
+          <p>{{ day|jdate_full }}</p>
+        </div>
+      </div>
+
+      <div class="day-chips" aria-label="انتخاب تاریخ">
+        {% for d in days %}
+          <a
+            class="day-chip{% if d == day %} active{% endif %}"
+            href="?date={{ d|date:'Y-m-d' }}"
+          >
+            <span>{{ d|weekday }}</span>
+            <strong>{{ d|jdate_short }}</strong>
+          </a>
+        {% endfor %}
+      </div>
+
+      {% if slots %}
+        <div class="slot-grid">
+          {% for slot in slots %}
+            <a
+              class="slot{% if selected.start == slot.start %} active{% endif %}"
+              href="?date={{ day|date:'Y-m-d' }}&start={{ slot.start_str }}"
+            >
+              {{ slot.start|time_fa }}
+              <small>تا {{ slot.end|time_fa }}</small>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">
+          <strong>در این روز زمان آزادی وجود ندارد.</strong>
+          پزشک در این روز شیفت ندارد، مرخصی است یا همه نوبت‌ها پر شده‌اند.
+          روز دیگری را انتخاب کنید.
+        </div>
+      {% endif %}
+
+      {% if selected %}
+        <div class="booking-panel">
+          <h3>
+            رزرو {{ selected.start|time_fa }} تا {{ selected.end|time_fa }}
+            در {{ day|jdate_full }}
+          </h3>
+          {% if can_book %}
+            <form method="post" action="{% url 'doctors:book' doctor.pk %}">
+              {% csrf_token %}
+              {{ booking_form.date.as_hidden }}
+              {{ booking_form.start_time.as_hidden }}
+              <div class="field">
+                <label for="{{ booking_form.note.id_for_label }}">
+                  {{ booking_form.note.label }}
+                </label>
+                {{ booking_form.note }}
+              </div>
+              <button class="btn btn-primary" type="submit">ثبت نهایی نوبت</button>
+            </form>
+          {% elif user.is_authenticated %}
+            <p class="muted">
+              فقط بیماران می‌توانند نوبت رزرو کنند. برای مدیریت نوبت‌ها از
+              <a href="{% url 'doctor:appointments' %}">پنل پزشک</a> استفاده کنید.
+            </p>
+          {% else %}
+            <p class="muted">
+              برای رزرو این زمان ابتدا وارد حساب بیمار خود شوید.
+            </p>
+            <a
+              class="btn btn-primary"
+              href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
+            >ورود و رزرو نوبت</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+
+    <aside class="card">
+      <h2>برنامه هفتگی</h2>
+      {% regroup weekly_hours by weekday as hours_by_day %}
+      {% for group in hours_by_day %}
+        <div class="schedule-row">
+          <strong>{{ group.grouper|weekday }}</strong>
+          <span class="muted small">
+            {% for shift in group.list %}
+              {{ shift.start_time|time_fa }} تا {{ shift.end_time|time_fa }}{% if not forloop.last %}، {% endif %}
+            {% endfor %}
+          </span>
+        </div>
+      {% empty %}
+        <p class="muted">هنوز برنامه کاری برای این پزشک ثبت نشده است.</p>
+      {% endfor %}
+      <p class="muted small mt-2">
+        هر نوبت ۳۰ دقیقه است. نوبت‌های رزروشده از این فهرست حذف می‌شوند.
+      </p>
+    </aside>
+  </div>
+</div>
+{% endblock %}

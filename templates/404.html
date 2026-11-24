@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}صفحه پیدا نشد{% endblock %}
+
+{% block content %}
+<div class="container auth-wrap">
+  <div class="card center">
+    <h1>صفحه پیدا نشد</h1>
+    <p class="muted">نشانی واردشده وجود ندارد یا دسترسی به آن مجاز نیست.</p>
+    <div class="form-actions center-actions">
+      <a class="btn btn-primary" href="{% url 'home' %}">بازگشت به خانه</a>
+      <a class="btn btn-ghost" href="{% url 'doctors:list' %}">فهرست پزشکان</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

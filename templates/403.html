@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}دسترسی غیرمجاز{% endblock %}
+
+{% block content %}
+<div class="container auth-wrap">
+  <div class="card center">
+    <h1>دسترسی غیرمجاز</h1>
+    <p class="muted">این صفحه برای نقش کاربری شما در دسترس نیست.</p>
+    <div class="form-actions center-actions">
+      <a class="btn btn-primary" href="{% url 'home' %}">بازگشت به خانه</a>
+      <a class="btn btn-ghost" href="{% url 'doctors:list' %}">فهرست پزشکان</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}نوبت‌های بیماران{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <div>
+      <h1>نوبت‌های بیماران</h1>
+      <p>
+        دکتر {{ profile.user.get_full_name|default:profile.user.username }} ·
+        {{ profile.specialty }}
+      </p>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'doctor:schedule' %}">برنامه کاری</a>
+  </div>
+
+  {% regroup appointments by date as date_groups %}
+  {% for group in date_groups %}
+    <section class="mt-2">
+      <h2>{{ group.grouper|jdate_full }}</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ساعت</th>
+              <th>بیمار</th>
+              <th>تماس</th>
+              <th>توضیح بیمار</th>
+              <th>وضعیت</th>
+              <th>اقدام</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appointment in group.list %}
+              <tr>
+                <td>
+                  {{ appointment.start_time|time_fa }} تا {{ appointment.end_time|time_fa }}
+                </td>
+                <td>
+                  {{ appointment.patient.get_full_name|default:appointment.patient.username }}
+                  <div class="muted small">{{ appointment.patient.username }}</div>
+                </td>
+                <td dir="ltr">{{ appointment.patient.phone|default:"—" }}</td>
+                <td>
+                  {% if appointment.note %}{{ appointment.note|linebreaksbr }}{% else %}—{% endif %}
+                </td>
+                <td>
+                  {% if appointment.status == "booked" %}
+                    <span class="badge badge-booked">رزروشده</span>
+                  {% elif appointment.status == "completed" %}
+                    <span class="badge badge-completed">انجام‌شده</span>
+                  {% else %}
+                    <span class="badge badge-cancelled">لغوشده</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if appointment.can_complete %}
+                    <form
+                      method="post"
+                      action="{% url 'doctor:complete_appointment' appointment.pk %}"
+                      data-confirm="این ویزیت تکمیل شود؟ پس از آن قابل بازگشت نیست."
+                    >
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-primary" type="submit">تکمیل ویزیت</button>
+                    </form>
+                  {% elif appointment.status == "booked" %}
+                    <span class="muted small">پس از زمان ویزیت</span>
+                  {% elif appointment.status == "completed" %}
+                    {% if appointment.review %}
+                      <span class="rating small">★ {{ appointment.review.rating|fa }}</span>
+                    {% else %}
+                      <span class="muted small">در انتظار نظر بیمار</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="muted small">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {% empty %}
+    <div class="empty">
+      <strong>هنوز نوبتی ثبت نشده است.</strong>
+      بیماران می‌توانند از صفحه عمومی شما زمان آزاد رزرو کنند.
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

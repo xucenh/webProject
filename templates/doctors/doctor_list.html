@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}پزشکان{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <div>
+      <h1>پزشکان کلینیک</h1>
+      <p>پزشک مناسب را پیدا کنید و زمان آزاد او را ببینید.</p>
+    </div>
+  </div>
+
+  <form class="search-form" method="get" action="{% url 'doctors:list' %}">
+    <input
+      type="search"
+      name="q"
+      value="{{ q }}"
+      placeholder="نام پزشک، تخصص یا نام مطب را جستجو کنید…"
+      aria-label="جستجوی پزشک"
+    >
+    <button class="btn btn-primary" type="submit">جستجو</button>
+  </form>
+
+  {% if q %}
+    <p class="muted small">
+      {{ doctors|length|fa }} نتیجه برای «{{ q }}»
+      <a href="{% url 'doctors:list' %}">حذف جستجو</a>
+    </p>
+  {% endif %}
+
+  {% if doctors %}
+    <div class="grid-3">
+      {% for doctor in doctors %}
+        {% include "doctors/_doctor_card.html" %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <strong>پزشکی پیدا نشد.</strong>
+      عبارت دیگری را جستجو کنید یا
+      <a href="{% url 'doctors:list' %}">همه پزشکان</a> را ببینید.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

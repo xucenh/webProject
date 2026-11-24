@@ -118,7 +118,7 @@ matrix in `02-processes.md`.
 
 ## 6. Assumptions and constraints
 
-1. One clinic, one physical address, one timezone (`UTC` in settings).
+1. One clinic, one physical address, one timezone (`Asia/Tehran` in settings).
 2. Appointments are exactly `SLOT_MINUTES = 30` minutes long; the value is one setting, not a per-doctor field.
 3. Slots start on the hour or half hour, generated from a shift's start time.
 4. A doctor's weekly hours are entered as start/end times, not as pre-built slots.

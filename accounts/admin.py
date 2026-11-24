@@ -11,8 +11,8 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ("username", "email", "first_name", "last_name", "phone")
 
     fieldsets = BaseUserAdmin.fieldsets + (
-        ("Clinic profile", {"fields": ("role", "phone")}),
+        ("پروفایل کلینیک", {"fields": ("role", "phone")}),
     )
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ("Clinic profile", {"fields": ("email", "role", "phone")}),
+        ("پروفایل کلینیک", {"fields": ("email", "role", "phone")}),
     )

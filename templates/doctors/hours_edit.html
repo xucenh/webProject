@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}ویرایش شیفت{% endblock %}
+
+{% block content %}
+<div class="container auth-wrap">
+  <div class="page-head">
+    <div>
+      <h1>ویرایش شیفت</h1>
+      <p>تغییر شیفت نباید نوبت رزروشده‌ای را بدون زمان بگذارد.</p>
+    </div>
+  </div>
+
+  <form class="form-card" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="form-grid">
+      {% include "partials/field.html" with field=form.weekday %}
+      {% include "partials/field.html" with field=form.start_time %}
+      {% include "partials/field.html" with field=form.end_time %}
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">ذخیره شیفت</button>
+      <a class="btn btn-ghost" href="{% url 'doctor:schedule' %}">انصراف</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

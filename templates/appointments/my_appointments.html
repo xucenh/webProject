@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}نوبت‌های من{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <div>
+      <h1>نوبت‌های من</h1>
+      <p>نوبت‌های پیشرو و سابقه ویزیت‌های خود را اینجا می‌بینید.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'doctors:list' %}">رزرو نوبت جدید</a>
+  </div>
+
+  <h2>نوبت‌های پیشرو</h2>
+  {% for appointment in upcoming %}
+    <article class="appointment-card">
+      <div class="appointment-main">
+        <h3>
+          <a href="{% url 'doctors:detail' appointment.doctor.pk %}">
+            دکتر {{ appointment.doctor.user.get_full_name|default:appointment.doctor.user.username }}
+          </a>
+          <span class="badge badge-booked">رزروشده</span>
+        </h3>
+        <div class="appointment-meta">
+          {{ appointment.date|jdate_full }} · ساعت {{ appointment.start_time|time_fa }}
+          تا {{ appointment.end_time|time_fa }}
+        </div>
+        <div class="appointment-meta">
+          {{ appointment.doctor.specialty }}
+          {% if appointment.doctor.clinic_name %} · {{ appointment.doctor.clinic_name }}{% endif %}
+        </div>
+        {% if appointment.note %}
+          <div class="appointment-meta">یادداشت شما: {{ appointment.note }}</div>
+        {% endif %}
+      </div>
+      <div class="appointment-actions">
+        <form
+          method="post"
+          action="{% url 'appointments:cancel' appointment.pk %}"
+          data-confirm="نوبت {{ appointment.date|jdate }} ساعت {{ appointment.start_time|time_fa }} لغو شود؟"
+        >
+          {% csrf_token %}
+          <button class="btn btn-sm btn-danger" type="submit">لغو نوبت</button>
+        </form>
+      </div>
+    </article>
+  {% empty %}
+    <div class="empty">
+      <strong>نوبت پیشرویی ندارید.</strong>
+      یک پزشک انتخاب کنید و زمان آزاد او را رزرو کنید.
+      <div class="mt-1"><a class="btn btn-sm btn-primary" href="{% url 'doctors:list' %}">مشاهده پزشکان</a></div>
+    </div>
+  {% endfor %}
+
+  <h2 class="mt-3">سابقه نوبت‌ها</h2>
+  {% for appointment in past %}
+    <article class="appointment-card">
+      <div class="appointment-main">
+        <h3>
+          <a href="{% url 'doctors:detail' appointment.doctor.pk %}">
+            دکتر {{ appointment.doctor.user.get_full_name|default:appointment.doctor.user.username }}
+          </a>
+          {% if appointment.status == "booked" %}
+            <span class="badge badge-booked">رزروشده</span>
+          {% elif appointment.status == "completed" %}
+            <span class="badge badge-completed">انجام‌شده</span>
+          {% else %}
+            <span class="badge badge-cancelled">لغوشده</span>
+          {% endif %}
+        </h3>
+        <div class="appointment-meta">
+          {{ appointment.date|jdate_full }} · ساعت {{ appointment.start_time|time_fa }}
+          تا {{ appointment.end_time|time_fa }}
+        </div>
+        <div class="appointment-meta">
+          {{ appointment.doctor.specialty }}
+          {% if appointment.doctor.clinic_name %} · {{ appointment.doctor.clinic_name }}{% endif %}
+        </div>
+        {% if appointment.review %}
+          <div class="review-note">
+            نظر شما: <span class="rating">★ {{ appointment.review.rating|fa }}</span>
+            {% if appointment.review.comment %} — {{ appointment.review.comment }}{% endif %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="appointment-actions">
+        {% if appointment.status == "booked" %}
+          <form
+            method="post"
+            action="{% url 'appointments:cancel' appointment.pk %}"
+            data-confirm="این نوبت لغو شود؟"
+          >
+            {% csrf_token %}
+            <button class="btn btn-sm btn-danger" type="submit">لغو نوبت</button>
+          </form>
+        {% elif appointment.can_review %}
+          <a class="btn btn-sm btn-primary" href="{% url 'appointments:review' appointment.pk %}">
+            ثبت نظر
+          </a>
+        {% endif %}
+      </div>
+    </article>
+  {% empty %}
+    <div class="empty">
+      <strong>سابقه‌ای وجود ندارد.</strong>
+      پس از انجام اولین ویزیت، اینجا نمایش داده می‌شود.
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}پروفایل پزشک{% endblock %}
+
+{% block content %}
+<div class="container auth-wrap wide">
+  <div class="page-head">
+    <div>
+      <h1>پروفایل پزشک</h1>
+      <p>اطلاعاتی که بیماران در فهرست پزشکان می‌بینند را ویرایش کنید.</p>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'doctors:detail' profile.pk %}">نمایش صفحه عمومی</a>
+  </div>
+
+  <form class="form-card" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="form-grid">
+      {% include "partials/field.html" with field=form.specialty %}
+      {% include "partials/field.html" with field=form.visit_fee %}
+      {% include "partials/field.html" with field=form.clinic_name %}
+      {% include "partials/field.html" with field=form.clinic_address %}
+      {% include "partials/field.html" with field=form.latitude %}
+      {% include "partials/field.html" with field=form.longitude %}
+      {% include "partials/field.html" with field=form.bio full=1 %}
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">ذخیره تغییرات</button>
+      <a class="btn btn-ghost" href="{% url 'doctor:schedule' %}">برنامه کاری</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% load persian %}
+<article class="doctor-card">
+  <div class="doctor-top">
+    <span class="avatar">{{ doctor.user.first_name|first|default:"پ" }}</span>
+    <div>
+      <h3>
+        <a href="{% url 'doctors:detail' doctor.pk %}">
+          دکتر {{ doctor.user.get_full_name|default:doctor.user.username }}
+        </a>
+      </h3>
+      <p class="specialty">{{ doctor.specialty }}</p>
+    </div>
+  </div>
+
+  <p class="clinic-name">{{ doctor.clinic_name|default:"مطب شخصی" }}</p>
+
+  <div>
+    {% if doctor.avg_rating %}
+      <span class="rating">★ {{ doctor.avg_rating|floatformat:1|fa }}</span>
+      <span class="muted small">از ۵</span>
+    {% elif doctor.average_rating %}
+      <span class="rating">★ {{ doctor.average_rating|floatformat:1|fa }}</span>
+      <span class="muted small">از ۵</span>
+    {% else %}
+      <span class="muted small">هنوز امتیازی ثبت نشده است</span>
+    {% endif %}
+  </div>
+
+  <div class="fee">{{ doctor.visit_fee|money_fa }} تومان</div>
+
+  <div class="card-actions">
+    <a class="btn btn-sm btn-primary" href="{% url 'doctors:detail' doctor.pk %}">
+      مشاهده و رزرو نوبت
+    </a>
+  </div>
+</article>

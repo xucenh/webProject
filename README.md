@@ -3,8 +3,9 @@
 Django + PostgreSQL web app where doctors publish their weekly availability and
 patients book 30-minute appointments. Built as a university project.
 
-**Status: Phase One complete** — scope, process design and data model are done and
-migrated to PostgreSQL. Feature views and templates start in Phase Two.
+**Status: Phase Two complete** — Persian (RTL) UI, authentication, doctor search and
+profiles, weekly schedules and days off, derived 30-minute slots, booking,
+cancellation, visit completion, reviews, demo data and acceptance tests.
 
 ## Docs
 
@@ -36,9 +37,10 @@ cp .env.example .env            # set DB_PASSWORD and DJANGO_SECRET_KEY
 # 3. database
 python3 manage.py migrate
 python3 manage.py createsuperuser
+python3 manage.py seed_demo       # Persian demo clinic: doctors, patients, visits
 
 # 4. run
-python3 manage.py runserver     # http://127.0.0.1:8000/admin/
+python3 manage.py runserver       # http://127.0.0.1:8000/
 ```
 
 Every later session only needs:
@@ -51,16 +53,36 @@ python3 manage.py runserver
 
 Without activating, use `.venv/bin/python manage.py ...` instead of `python3`.
 
-## Doors that are open right now
+## Demo accounts
 
-| URL | State |
-| --- | --- |
-| `/admin/` | works — log in and manage users, doctors, schedules, appointments |
-| `/` | Django's default "install worked" page (no project URLs yet) |
-| everything else | Phase Two |
+`seed_demo` is idempotent; run it again to top up without duplicating bookings.
+Use `python3 manage.py seed_demo --reset` to delete and recreate only the demo
+accounts and their appointments.
 
+| Role | Usernames | Password |
+| --- | --- | --- |
+| Doctor | `dr_ahmadi`, `dr_sadeghi`, `dr_karimi`, `dr_rahimi`, `dr_hosseini` | `Demo12345!` |
+| Patient | `sara`, `reza`, `maryam`, `amir` | `Demo12345!` |
 
-Database setup (PostgreSQL):
+## Screens
+
+| URL | Role | Purpose |
+| --- | --- | --- |
+| `/` | any | Persian landing page |
+| `/accounts/signup/`, `/accounts/login/` | visitor | patient or doctor signup, login |
+| `/doctors/` | any | doctor list and search by name/specialty |
+| `/doctors/<id>/` | any | profile, weekly hours, date picker, free slots, booking |
+| `/appointments/` | patient | upcoming/history, cancel, review completed visits |
+| `/doctor/appointments/` | doctor | bookings, patient phone/note, complete a visit |
+| `/doctor/schedule/` | doctor | add/edit/delete shifts, days off with booking warning |
+| `/doctor/profile/` | doctor | specialty, clinic, fee, bio, map coordinates |
+| `/admin/` | staff | Django admin |
+
+All customer-facing pages are Persian and RTL. Dates are shown in the Jalali
+calendar with Persian digits; date inputs accept `۱۴۰۵/۰۹/۰۷` (or ISO
+`2026-11-28`). The clinic timezone is `Asia/Tehran`.
+
+## Database setup (PostgreSQL)
 
 ```bash
 sudo -u postgres psql -c "CREATE ROLE clinic WITH LOGIN PASSWORD 'devpass' CREATEDB;"
@@ -71,10 +93,19 @@ sudo -u postgres psql -c "CREATE DATABASE clinic_db OWNER clinic;"
 
 ```
 config/         Django project (settings, urls)
-accounts/       User (role: doctor | patient)
-doctors/        DoctorProfile, WorkingHours, TimeOff
-appointments/   Appointment, Review
-docs/           Phase One documents
-templates/      (empty — Phase Two)
-static/         (empty — Phase Two)
+core/           home view, Jalali helpers, Persian template filters, seed command
+accounts/       User (role: doctor | patient), signup/login
+doctors/        DoctorProfile, WorkingHours, TimeOff, slot service, doctor portal
+appointments/   Appointment, Review, patient/doctor views, emails, reminders
+docs/           Phase One design documents
+templates/      Persian RTL pages
+static/         stylesheet and small UI script
+```
+
+## Checks
+
+```bash
+python3 manage.py check
+python3 manage.py test                  # 46 acceptance/behaviour tests
+python3 manage.py send_reminders --dry-run   # next-24h reminder list
 ```

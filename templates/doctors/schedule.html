@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}برنامه کاری{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <div>
+      <h1>برنامه کاری</h1>
+      <p>شیفت‌های هفتگی و روزهای مرخصی خود را مدیریت کنید.</p>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'doctor:appointments' %}">نوبت‌های بیماران</a>
+  </div>
+
+  <div class="split">
+    <div class="stack">
+      <section class="card">
+        <h2>شیفت‌های هفتگی</h2>
+        {% for shift in hours %}
+          <div class="schedule-row">
+            <div>
+              <strong>{{ shift.weekday|weekday }}</strong>
+              <span class="muted small">
+                {{ shift.start_time|time_fa }} تا {{ shift.end_time|time_fa }}
+              </span>
+            </div>
+            <div class="actions">
+              <a class="btn btn-sm btn-ghost" href="{% url 'doctor:hours_edit' shift.pk %}">ویرایش</a>
+              <form
+                method="post"
+                action="{% url 'doctor:hours_delete' shift.pk %}"
+                data-confirm="این شیفت حذف شود؟ نوبت‌های آینده آن نیز باید جابه‌جا شوند."
+              >
+                {% csrf_token %}
+                <button class="btn btn-sm btn-danger" type="submit">حذف</button>
+              </form>
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty">
+            <strong>هنوز شیفتی ثبت نشده است.</strong>
+            با فرم پایین اولین شیفت خود را اضافه کنید.
+          </div>
+        {% endfor %}
+      </section>
+
+      <section class="card">
+        <h2>افزودن شیفت</h2>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_hours">
+          {{ hours_form.non_field_errors }}
+          <div class="form-grid">
+            {% include "partials/field.html" with field=hours_form.weekday %}
+            {% include "partials/field.html" with field=hours_form.start_time %}
+            {% include "partials/field.html" with field=hours_form.end_time %}
+          </div>
+          <button class="btn btn-primary" type="submit">افزودن شیفت</button>
+        </form>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="card">
+        <h2>روزهای مرخصی</h2>
+        {% for dayoff in time_off %}
+          <div class="schedule-row">
+            <div>
+              <strong>{{ dayoff.date|jdate_full }}</strong>
+              {% if dayoff.reason %}
+                <span class="muted small"> — {{ dayoff.reason }}</span>
+              {% endif %}
+            </div>
+            <form
+              method="post"
+              action="{% url 'doctor:timeoff_delete' dayoff.pk %}"
+              data-confirm="این روز مرخصی حذف شود؟"
+            >
+              {% csrf_token %}
+              <button class="btn btn-sm btn-danger" type="submit">حذف</button>
+            </form>
+          </div>
+        {% empty %}
+          <p class="muted">روز مرخصی ثبت نشده است.</p>
+        {% endfor %}
+
+        {% if pending_timeoff %}
+          <div class="alert alert-warning mt-2">
+            <strong>هشدار:</strong>
+            در {{ pending_timeoff.date|jdate_full }}
+            {{ pending_timeoff.count|fa }} نوبت رزروشده وجود دارد.
+            با ثبت مرخصی، این نوبت‌ها بدون ویزیت می‌مانند.
+            {% if pending_timeoff.reason %}
+              <div>دلیل ثبت‌شده: {{ pending_timeoff.reason }}</div>
+            {% endif %}
+            <ul class="small">
+              {% for appointment in pending_conflicts %}
+                <li>
+                  {{ appointment.start_time|time_fa }} —
+                  {{ appointment.patient.get_full_name|default:appointment.patient.username }}
+                  ({{ appointment.patient.phone|default:"بدون تلفن" }})
+                </li>
+              {% endfor %}
+            </ul>
+            <form
+              method="post"
+              data-confirm="با وجود نوبت‌های رزروشده، این روز مرخصی ثبت شود؟"
+            >
+              {% csrf_token %}
+              <input type="hidden" name="action" value="add_timeoff">
+              <input type="hidden" name="date" value="{{ pending_timeoff.date|date:'Y-m-d' }}">
+              <input type="hidden" name="reason" value="{{ pending_timeoff.reason }}">
+              <input type="hidden" name="confirm" value="1">
+              <button class="btn btn-sm btn-danger" type="submit">تأیید و ثبت مرخصی</button>
+            </form>
+          </div>
+        {% endif %}
+
+        <form method="post" class="mt-2" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_timeoff">
+          {{ timeoff_form.non_field_errors }}
+          <div class="form-grid">
+            {% include "partials/field.html" with field=timeoff_form.date %}
+            {% include "partials/field.html" with field=timeoff_form.reason %}
+          </div>
+          <button class="btn btn-primary" type="submit">ثبت روز مرخصی</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>وضعیت</h2>
+        <ul class="detail-list">
+          <li><span>نوبت‌های آینده</span><strong>{{ upcoming_count|fa }}</strong></li>
+          <li><span>شیفت‌های هفتگی</span><strong>{{ hours|length|fa }}</strong></li>
+          <li><span>روزهای مرخصی پیشرو</span><strong>{{ time_off|length|fa }}</strong></li>
+        </ul>
+        <p class="muted small mt-2">
+          هر تغییر در برنامه، بلافاصله در زمان‌های آزاد بیماران اعمال می‌شود.
+        </p>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

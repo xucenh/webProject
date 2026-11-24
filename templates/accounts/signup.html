@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}ثبت‌نام{% endblock %}
+
+{% block content %}
+<div class="container auth-wrap wide">
+  <div class="auth-head">
+    <h1>ایجاد حساب کاربری</h1>
+    <p>برای رزرو نوبت، حساب بیمار بسازید. پزشکان نیز می‌توانند برنامه کاری خود را ثبت کنند.</p>
+  </div>
+
+  <form class="form-card" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="field{% if form.role.errors %} has-error{% endif %}">
+      <label>{{ form.role.label }}<span class="req">*</span></label>
+      {{ form.role }}
+      {% for error in form.role.errors %}<p class="error">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div class="form-grid">
+      {% include "partials/field.html" with field=form.first_name %}
+      {% include "partials/field.html" with field=form.last_name %}
+      {% include "partials/field.html" with field=form.username %}
+      {% include "partials/field.html" with field=form.email %}
+      {% include "partials/field.html" with field=form.phone %}
+      {% include "partials/field.html" with field=form.password1 %}
+      {% include "partials/field.html" with field=form.password2 %}
+    </div>
+
+    <div id="doctor-fields">
+      <h2 class="mt-2">اطلاعات پزشک</h2>
+      <p class="muted small">این بخش فقط برای حساب پزشک لازم است.</p>
+      <div class="form-grid">
+        {% include "partials/field.html" with field=form.specialty %}
+        {% include "partials/field.html" with field=form.clinic_name %}
+        {% include "partials/field.html" with field=form.clinic_address %}
+        {% include "partials/field.html" with field=form.visit_fee %}
+        {% include "partials/field.html" with field=form.bio full=1 %}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">ساخت حساب</button>
+      <a class="btn btn-ghost" href="{% url 'accounts:login' %}">حساب دارم</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

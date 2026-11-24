@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load persian %}
+{% block title %}ثبت نظر{% endblock %}
+
+{% block content %}
+<div class="container auth-wrap">
+  <p class="breadcrumb">
+    <a href="{% url 'appointments:mine' %}">نوبت‌های من</a> / ثبت نظر
+  </p>
+
+  <div class="card">
+    <h1>نظر شما درباره این ویزیت</h1>
+    <p class="muted">
+      دکتر {{ appointment.doctor.user.get_full_name|default:appointment.doctor.user.username }}
+      · {{ appointment.date|jdate_full }} · ساعت {{ appointment.start_time|time_fa }}
+    </p>
+
+    {% if review %}
+      <div class="review-box">
+        <div class="rating">★ {{ review.rating|fa }} از ۵</div>
+        {% if review.comment %}
+          <p class="mt-1">{{ review.comment }}</p>
+        {% else %}
+          <p class="muted mt-1">بدون توضیح</p>
+        {% endif %}
+        <p class="muted small">نظر شما قبلاً ثبت شده است و قابل ویرایش نیست.</p>
+      </div>
+      <div class="form-actions mt-2">
+        <a class="btn btn-ghost" href="{% url 'appointments:mine' %}">بازگشت به نوبت‌ها</a>
+      </div>
+    {% else %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="field{% if form.rating.errors %} has-error{% endif %}">
+          <label>{{ form.rating.label }}<span class="req">*</span></label>
+          {{ form.rating }}
+          {% for error in form.rating.errors %}<p class="error">{{ error }}</p>{% endfor %}
+        </div>
+        {% include "partials/field.html" with field=form.comment %}
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">ارسال نظر</button>
+          <a class="btn btn-ghost" href="{% url 'appointments:mine' %}">انصراف</a>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% load static %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}کلینیک مهر{% endblock %} | نوبت‌دهی آنلاین</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="{% url 'home' %}" aria-label="کلینیک مهر">
+        <span class="brand-mark">م</span>
+        <span class="brand-text">
+          <strong>کلینیک مهر</strong>
+          <small>نوبت‌دهی آنلاین</small>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="منوی اصلی">
+        {% if user.is_authenticated %}
+          {% if user.is_doctor %}
+            <a href="{% url 'doctor:appointments' %}">نوبت‌های بیماران</a>
+            <a href="{% url 'doctor:schedule' %}">برنامه کاری</a>
+            <a href="{% url 'doctor:profile' %}">پروفایل</a>
+          {% else %}
+            <a href="{% url 'doctors:list' %}">پزشکان</a>
+            <a href="{% url 'appointments:mine' %}">نوبت‌های من</a>
+          {% endif %}
+          {% if user.is_staff %}
+            <a href="{% url 'admin:index' %}">مدیریت</a>
+          {% endif %}
+          <span class="user-chip">{{ user.get_full_name|default:user.username }}</span>
+          <form class="inline-form" method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button class="link-button" type="submit">خروج</button>
+          </form>
+        {% else %}
+          <a href="{% url 'doctors:list' %}">پزشکان</a>
+          <a href="{% url 'accounts:login' %}">ورود</a>
+          <a class="btn btn-sm btn-primary" href="{% url 'accounts:signup' %}">ثبت‌نام</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="container messages" role="status">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>کلینیک مهر</strong>
+        <p>رزرو آنلاین نوبت پزشک، ساده و بدون تماس تلفنی.</p>
+      </div>
+      <div class="footer-links">
+        <a href="{% url 'doctors:list' %}">فهرست پزشکان</a>
+        <a href="{% url 'accounts:signup' %}">ثبت‌نام</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/app.js' %}" defer></script>
+</body>
+</html>
